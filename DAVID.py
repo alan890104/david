@@ -1,4 +1,4 @@
-import pygame, time, math, random, sys,os,random
+import  pygame,time, math, random, sys,os,random
 from pygame.locals import *
 
 dick = pygame.image.load('image.png')
@@ -26,6 +26,9 @@ screen = pygame.display.set_mode((W,H))
 bgset=[background1,background2,background3,background4,background5]
 d = [[872,220,909],[1207,196,1248],[1655,218,1693],[2184,225,2218],[2676,189,2727],[3271,198,3317]]
 dset=[d,d,d,d,d]
+
+
+
 class David():
 
     def __init__(self, x, y):
@@ -35,8 +38,10 @@ class David():
         self.jumpCount = 15
 
     def draw(self,x):
+        myFont = pygame.font.SysFont("Times New Roman", 18)
+        mytime = myFont.render(str(pygame.time.get_ticks()/1000)+'s',1,(0,0,0))
+        screen.blit(mytime,(x+10,self.y+10))
         screen.blit(dick, (x,self.y))
-
 
     def jump(self):
         if self.isJump:
