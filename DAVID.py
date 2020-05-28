@@ -3,6 +3,7 @@ from pygame.locals import *
 
 dick = pygame.image.load('image.png')
 background = pygame.image.load('bg.png')
+background2 = pygame.image.load('bg.png')
 gameover = pygame.image.load('gameover.png')
 #background = pygame.Surface((10,10))
 #background.fill((255,255,255))
@@ -19,7 +20,7 @@ clock = pygame.time.Clock()
 screen = pygame.display.set_mode((W,H))
 
 
-d = [[872,220,909],[1207,196,1248],[1655,218,1693],[2184,225,2218],[2676,189,2727]]
+d = [[872,220,909],[1207,196,1248],[1655,218,1693],[2184,225,2218],[2676,189,2727],[3271,198,3317]]
 
 class David():
 
@@ -74,23 +75,18 @@ while True:
     clock.tick(FPS)
     pressed_keys = pygame.key.get_pressed()
     screen.blit(background, (bg_x,0))
+    screen.blit(background2, (bg_x+4000,0))
+    
 
-    if(z<4 and d[z][2]<pos_x-bg_x):
+    if(z<5 and d[z][2]<pos_x-bg_x):
         z = z+1
     
     david.check((pos_x-bg_x),z,d,bg_x)
     
     david.draw(pos_x)
     david.jump()
-    
-    if bg_x>=-3000: bg_x = bg_x-5
-    else:
-        print("SUCCESS")
-        time.sleep(3)
-        pygame.quit()
-        sys.exit()
-        break
+    bg_x = bg_x-5
+    if bg_x==-4000: 
+        bg_x=0
+        z=0
     pygame.display.update()
-    
-    
-    
