@@ -8,6 +8,7 @@ background2 = pygame.image.load('bg2.png')
 background3 = pygame.image.load('bg3.png')
 background4 = pygame.image.load('bg4.png')
 background5 = pygame.image.load('bg5.png')
+backgroundx = pygame.image.load('bgx.png')
 gameover = pygame.image.load('gameover.png')
 #background = pygame.Surface((10,10))
 #background.fill((255,255,255))
@@ -16,7 +17,7 @@ gameover = pygame.image.load('gameover.png')
 W, H = 600, 400
 HW, HH = W / 2, H / 2
 AREA = W * H
-FPS = 80
+FPS = 100
 bg_x = 0
 
 pygame.init()
@@ -40,8 +41,8 @@ class David():
     def draw(self,x):
         myFont = pygame.font.SysFont("Times New Roman", 18)
         mytime = myFont.render(str(pygame.time.get_ticks()/1000)+'s',1,(0,0,0))
-        screen.blit(mytime,(x+10,self.y+10))
-        screen.blit(dick, (x,self.y))
+        screen.blit(mytime,(x+10,int(self.y)+10))
+        screen.blit(dick, (x,int(self.y)))
 
     def jump(self):
         if self.isJump:
@@ -57,7 +58,10 @@ class David():
      
     def check(self,x,z,d,bg_x):
         if ( (x>=d[z][0]) and (self.y>=d[z][1]) and (x<=d[z][2])):
+            myFont = pygame.font.SysFont("Times New Roman", 30)
+            mytime = myFont.render("Your score is : "+str(pygame.time.get_ticks()),1,(0,0,0))
             screen.blit(gameover,(0,0))
+            screen.blit(mytime,(300,350))
             pygame.display.update()
             time.sleep(3)
             pygame.quit()
@@ -68,7 +72,7 @@ pos_x = 50
 pos_y = 250
 david = David(pos_x, pos_y)
 next_bg=random.randint(0,4)
-
+speed = 5
 z=0
 while True:
     
@@ -94,9 +98,10 @@ while True:
     
     david.draw(pos_x)
     david.jump()
-    bg_x = bg_x-5
-    if bg_x==-4000: 
-        bg_x=0
+    bg_x = bg_x-speed
+    if bg_x<=-4000:
+        speed = min(speed+1,8)
+        bg_x=bg_x+4000
         z=0
         if next_bg==1:
             background = pygame.image.load('bg.png')
