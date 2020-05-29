@@ -31,6 +31,7 @@ class David():
     def draw(self,x,op)        繪製現時分數與恐龍本體動畫
     def jump(self)             跳躍動畫(符合物理原理)
     def check(self,x,z,d,bg_x) 判斷撞擊障礙物與失敗條件
+    
 遊戲迴圈
 1. 接收指令觸發行動(quit,jump)
 2. 設定每秒幀數
