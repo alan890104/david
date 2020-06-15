@@ -58,8 +58,9 @@ class David():
         self.y = y
         self.isJump = False
         self.jumpCount = 15
+        
 
-    def draw(self,x,op,fly):
+    def draw(self,x,op,fly, energy ,is_flash,frame,flash_freq):
         myFont = pygame.font.SysFont("Times New Roman", 18)
         mytime = myFont.render(str(pygame.time.get_ticks()/1000)+'s',1,(0,0,0))
         screen.blit(mytime,(x+20,int(self.y)+20))
@@ -68,7 +69,14 @@ class David():
         else:
             screen.blit(dino2, (x,int(self.y)))
         if fly:
-            screen.blit(sheld, (x-20,int(self.y)-5)) 
+            
+            screen.blit(sheld, (x-20,int(self.y)-5))
+        else:
+            if is_flash:
+                if frame < flash_freq/2:
+                    screen.blit(sheld, (x-20,int(self.y)-5))
+ 
+            
 
     def jump(self):
         if self.isJump:
@@ -113,12 +121,18 @@ next_bg=random.randint(0,len(dset)-1)
 next_sk=random.randint(0,1)
 ground_speed = 5
 sky_speed = 1
-z=0
+flash_freq = FPS/2
+z = 0
 op = 1 # op change image of dino
-energy=0
-fly=0
+energy = 0
+fly = 0
+flash_time = 0
+is_flash = 0
+frame = 0
 while True:
+    frame=(frame+1)%flash_freq
     
+        
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             sys.exit()
@@ -128,8 +142,11 @@ while True:
             if event.key == pygame.K_SPACE:
                 david.isJump = True
             if event.key == pygame.K_a:
-                if energy>250:
-                    fly=1
+                if fly==0:
+                    if energy>300 and (not is_flash):
+                        fly = 1
+                        flash_time = energy
+                        ground_speed = ground_speed + 10
         
 
     clock.tick(FPS)
@@ -139,31 +156,48 @@ while True:
     screen.blit(sky1,(sk_x,0))
     screen.blit(skset[next_sk],(sk_x+4000,0))
 
+    
+    
     if(z<len(d)-1 and d[z][2]<pos_x-bg_x):
         z = z+1
-    if fly:
-        if energy>0:
-            energy=energy-5
-            ground_speed=8
-        else:
-            fly=0
-            ground_speed=5
-        
-        
-    else:
-        david.check((pos_x-bg_x),z,d,bg_x)#change check_test if debug
+
+    if not fly and not is_flash:
+        david.check((pos_x-bg_x),z,d,bg_x)#debug -> change check_test
         if energy<1000:
             energy=energy+1
+            
+    if fly:
+        if energy>0:
+            energy=max(energy-5,0)
+            
+        else:
+            fly=0
+            ground_speed = ground_speed-10
+            is_flash = 1
+           
+
+
     
-    david.draw(pos_x,op,fly and energy>250)
+
+    if is_flash:
+        if flash_time>0:
+            flash_time = flash_time-5
+        else:
+            is_flash = 0
+            
+            
+    
+    david.draw(pos_x,op,fly,energy,is_flash,frame,flash_freq)
     david.jump()
     bg_x = bg_x-ground_speed
     sk_x = sk_x-sky_speed
+    
     if op==1: op=2 #change Dino picture for every loop 
     else: op=1
     
     if bg_x<=-4000:
-        ground_speed = min(ground_speed,8)
+        if not fly:
+            ground_speed = min(ground_speed+1,10)
         bg_x=bg_x+4000
         z=0
         if next_bg==0:
@@ -189,4 +223,5 @@ while True:
             sky1 = pygame.image.load('sk2.png')
         next_sk = random.randint(0,1)
     screen.blit(e[int(energy/100)],(300,300))
+    
     pygame.display.update()
