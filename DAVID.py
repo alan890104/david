@@ -128,10 +128,9 @@ while True:
             if event.key == pygame.K_SPACE:
                 david.isJump = True
             if event.key == pygame.K_a:
-                fly=1
-        elif event.type == pygame.KEYUP:
-            if event.key == pygame.K_a:
-                fly=0
+                if energy>250:
+                    fly=1
+        
 
     clock.tick(FPS)
     pressed_keys = pygame.key.get_pressed()
@@ -142,8 +141,13 @@ while True:
 
     if(z<len(d)-1 and d[z][2]<pos_x-bg_x):
         z = z+1
-    if fly and energy>250:
-        energy=energy-5;
+    if fly:
+        if energy>0:
+            energy=energy-5
+            ground_speed=8
+        else:
+            fly=0
+            ground_speed=5
         
         
     else:
@@ -172,9 +176,10 @@ while True:
             background = pygame.image.load('bg4.png')
         elif next_bg==4:
             background = pygame.image.load('bg5.png')
-        next_bg=random.randint(0,len(dset)-1)
-        #next_bg=4
         d=dset[next_bg][:]
+        next_bg=random.randint(0,len(dset)-1)
+        
+        
     if sk_x <= -4000:
         sky_speed= min(sky_speed+1,5)
         sk_x = sk_x+4000
