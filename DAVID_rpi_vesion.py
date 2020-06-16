@@ -2,14 +2,17 @@ import  pygame,time, math, random, sys,os,random
 from pygame.locals import *
 from gpiozero import Button
 
+button_jump = Button(23)
+button_shield = Button(24)
+
 def  game_initialization():
     
     global dino1,dino2,background,background1,background2,background3,background4,background5,backgroundx
     global e0,e1,e2,e3,e4,e5,e6,e7,e8,e9,e10
     global sky1,sky2
     global gameover,shield
-    dino1 = pygame.image.load('dino1.png')
-    dino2 = pygame.image.load('dino2.png')
+    dino1 = pygame.image.load('Dino1.png')
+    dino2 = pygame.image.load('Dino2.png')
     background = pygame.image.load('bg.png')
     background1 = pygame.image.load('bg.png')
     background2 = pygame.image.load('bg2.png')
@@ -46,7 +49,7 @@ def  game_initialization():
     pygame.mixer.music.load("david_bgm.mp3") #load bgm 
     pygame.mixer.music.play(-1)
 
-    global FPS, bg_x, sk_x
+    global FPS, bg_x, sk_x,W,H
     W, H = 600, 400
     HW, HH = W / 2, H / 2
     AREA = W * H
@@ -69,7 +72,7 @@ def  game_initialization():
     dset=[d1,d2,d3,d4]
     e=[e0,e1,e2,e3,e4,e5,e6,e7,e8,e9,e10]
 
-    global clock, image, pos_x, pos_y, david, next_bg, next_sk, ground_speed, sky_speed,  flash_freq, z, op, energy,fly, flash_time, is_flash, frame, playing
+    global game_time, score, clock, image, pos_x, pos_y, david, next_bg, next_sk, ground_speed, sky_speed,  flash_freq, z, op, energy,fly, flash_time, is_flash, frame, playing
     clock = pygame.time.Clock()
     image_width = 20  #if you change the image , you need to fill new image width       
     pos_x = 50
@@ -79,7 +82,7 @@ def  game_initialization():
     next_sk=random.randint(0,1)
     ground_speed = 5
     sky_speed = 1
-    flash_freq = FPS/2
+    flash_freq = FPS/8
     z = 0
     op = 1 # op change image of dino
     energy = 0
@@ -87,6 +90,8 @@ def  game_initialization():
     flash_time = 0
     is_flash = 0
     frame = 0
+    score = 0
+    game_time = 0
     playing = 1 # playing = 1 ->  enter or replay
 
 
@@ -102,7 +107,7 @@ class David():
 
     def draw(self,x,op,fly, energy ,is_flash,frame,flash_freq):
         myFont = pygame.font.SysFont("Times New Roman", 18)
-        mytime = myFont.render(str(pygame.time.get_ticks()/1000)+'s',1,(0,0,0))
+        mytime = myFont.render(str(round(game_time,2))+'s',1,(0,0,0))
         screen.blit(mytime,(x+20,int(self.y)+20))
         if op==1:
             screen.blit(dino1, (x,int(self.y)))
@@ -130,11 +135,12 @@ class David():
                 self.jumpCount = 15
      
     def check(self,x,z,d,bg_x):
+        global score
         if ( (x>=d[z][0]) and (self.y>=d[z][1]) and (x<=d[z][2])):
             die_music.play()
-            myFont = pygame.font.SysFont("Times New Roman", 30)
-            mytime = myFont.render("Your score is : "+str(pygame.time.get_ticks()),1,(0,0,0))
             screen.blit(gameover,(0,0))
+            myFont = pygame.font.SysFont("Times New Roman", 30)
+            mytime = myFont.render("Your score is : "+str(score),1,(0,0,0))
             screen.blit(mytime,(300,350))
             pygame.mixer.music.stop( ); # end the original bgm before showing the lose screen
             pygame.display.update( )#update the screen of result
@@ -166,26 +172,26 @@ def game_loop():
     global sky1,sky2
     global gameover,shield
     global jump_music,die_music,shield_music
-    global FPS, bg_x, sk_x
+    global FPS, bg_x, sk_x,W,H
     global screen
     global skset,bgset,d,d1,d2,d3,d4,dset,e
     global clock, image, pos_x, pos_y, david, next_bg, next_sk, ground_speed, sky_speed,  flash_freq, z, op, energy,fly, flash_time, is_flash, frame, playing
-    global threshold
+    global threshold,button_jump,button_shield
+    global score,game_time
+    
 
-    button_jump = Button(16)
-    button_shield = Button(18)
-
-    button_jump.wait_for_press() #get start signal to start game
-    button_shield.wait_for_press()#same as above
+    #button_jump.wait_for_press() #get start signal to start game
+    #button_shield.wait_for_press()#same as above
     
     while True:
-        
+        score = score + ground_speed
+        game_time = game_time + round(6/FPS,2)
         frame=(frame+1)%flash_freq
-        if button_jump.is_pressed:#this is jump
+        if button_jump.is_pressed==0:#this is jump
             if not david.isJump:
-                        jump_music.play()
-                        david.isJump = True
-        if button_shield.is_pressed:#this is shield
+                jump_music.play()
+                david.isJump = True
+        if button_shield.is_pressed==0:#this is shield
             if fly==0:
                 if energy>300 and (not is_flash):
                     shield_music.play()
@@ -200,19 +206,6 @@ def game_loop():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
                     sys.exit()
-                #if event.key == pygame.K_SPACE:
-                    #if not david.isJump:
-                        #jump_music.play()
-                        #david.isJump = True
-                        
-                        
-                #if event.key == pygame.K_a:
-                    #if fly==0:
-                        #if energy>300 and (not is_flash):
-                            #shield_music.play()
-                            #fly = 1
-                            #flash_time = energy
-                            #ground_speed = ground_speed + 10
             
 
         clock.tick(FPS)
@@ -225,6 +218,11 @@ def game_loop():
         
         
         if(z<len(d)-1 and d[z][2]<pos_x-bg_x):
+            myFont = pygame.font.SysFont("Times New Roman", 30)
+            bonus = myFont.render("+200",1,(255,0,0))
+            screen.blit(bonus,(pos_x,d[z][1]-20))
+            pygame.display.update( )
+            score+=200
             z = z+1
 
         if not fly and not is_flash:
@@ -286,18 +284,22 @@ def game_loop():
             next_sk = random.randint(0,1)
         screen.blit(e[int(energy/100)],(300,300))
         
+        myFont = pygame.font.SysFont("Times New Roman", 28)
+        mytime = myFont.render("Your score is : "+str(score),1,(0,0,0))
+        screen.blit(mytime,(20,314))
+        
         pygame.display.update()
 
 def play_again():
-    print('press space  and a to play again')
+    print('press jump to play again')
     while True:
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
-        if button_jump.is_pressed:
+        if button_jump.is_pressed==0:
             return 1
-        else:
+        elif button_shield.is_pressed==0:
             return 0
                 
         
@@ -305,7 +307,7 @@ def game_play():
     while True:
         game_initialization()
         game_loop()
-        if not play_again():
+        if play_again() == 0:
             pygame.quit()
             sys.exit()
             break
