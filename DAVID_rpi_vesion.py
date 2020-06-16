@@ -1,6 +1,6 @@
 import  pygame,time, math, random, sys,os,random
 from pygame.locals import *
-
+from gpiozero import Button
 
 def  game_initialization():
     
@@ -146,8 +146,9 @@ class David():
             #sys.exit()
         else:
             return 1
-
-def RCtime(RCpin):
+        
+''' #This is teacher's reference code
+def RCtime(RCpin): 
     reading = 0
     GPIO.setup(RCpin,GPIO.OUT)
     GPIO.output(RCpin,GPIO.LOW)
@@ -155,7 +156,7 @@ def RCtime(RCpin):
     GPIO.setup(RCpin,GPIO.IN)
     while(GPIO.input(RCpin)==GPIO.LOW):
         reading += 1
-    return reading
+    return reading'''
 
 
 def game_loop():
@@ -171,18 +172,20 @@ def game_loop():
     global clock, image, pos_x, pos_y, david, next_bg, next_sk, ground_speed, sky_speed,  flash_freq, z, op, energy,fly, flash_time, is_flash, frame, playing
     global threshold
 
-    RCpin1 = 18
-    RCpin2 = 
+    button_jump = Button(16)
+    button_shield = Button(18)
+
+    button_jump.wait_for_press() #get start signal to start game
+    button_shield.wait_for_press()#same as above
     
     while True:
-
         
         frame=(frame+1)%flash_freq
-        if RCtime(RCpin1)>threshold:#this is jump
+        if button_jump.is_pressed:#this is jump
             if not david.isJump:
                         jump_music.play()
                         david.isJump = True
-        if RCtime(RCpin2)>threshold:#this is shield
+        if button_shield.is_pressed:#this is shield
             if fly==0:
                 if energy>300 and (not is_flash):
                     shield_music.play()
@@ -292,11 +295,10 @@ def play_again():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
-            elif event.type == KEYDOWN:
-                if event.key == K_SPACE:
-                    return 1
-                else:
-                    return 0
+        if button_jump.is_pressed:
+            return 1
+        else:
+            return 0
                 
         
 def game_play():
