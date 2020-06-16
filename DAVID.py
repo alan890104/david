@@ -1,4 +1,4 @@
-import  pygame,time, math, random, sys,os,random,gpio
+import  pygame,time, math, random, sys,os,random
 from pygame.locals import *
 
 dino1 = pygame.image.load('dino1.png')
@@ -27,12 +27,23 @@ gameover = pygame.image.load('gameover.png')
 sheld= pygame.image.load('sheld.png')
 
 
+pygame.mixer.init()
+pygame.time.delay(1000)
+jump_music = pygame.mixer.Sound('jump.wav')
+pygame.mixer.music.set_volume(1.0)
+die_music = pygame.mixer.Sound('die.wav')
+pygame.mixer.music.set_volume(1.0)
+sheld_music = pygame.mixer.Sound('sheld.wav')
+pygame.mixer.music.set_volume(1.0)
+
 W, H = 600, 400
 HW, HH = W / 2, H / 2
 AREA = W * H
 FPS = 100
 bg_x = 0
 sk_x = 0
+
+
 
 pygame.init()
 clock = pygame.time.Clock()
@@ -51,6 +62,7 @@ dset=[d1,d2,d3,d4]
 e=[e0,e1,e2,e3,e4,e5,e6,e7,e8,e9,e10]
 
 
+        
 class David():
 
     def __init__(self, x, y):
@@ -92,6 +104,7 @@ class David():
      
     def check(self,x,z,d,bg_x):
         if ( (x>=d[z][0]) and (self.y>=d[z][1]) and (x<=d[z][2])):
+            die_music.play()
             myFont = pygame.font.SysFont("Times New Roman", 30)
             mytime = myFont.render("Your score is : "+str(pygame.time.get_ticks()),1,(0,0,0))
             screen.blit(gameover,(0,0))
@@ -140,10 +153,14 @@ while True:
             if event.key == pygame.K_q:
                 sys.exit()
             if event.key == pygame.K_SPACE:
-                david.isJump = True
+                if not david.isJump:
+                    david.isJump = True
+                    jump_music.play()
+                    
             if event.key == pygame.K_a:
                 if fly==0:
                     if energy>300 and (not is_flash):
+                        sheld_music.play()
                         fly = 1
                         flash_time = energy
                         ground_speed = ground_speed + 10
