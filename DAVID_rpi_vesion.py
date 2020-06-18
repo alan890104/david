@@ -1,6 +1,8 @@
 import  pygame,time, math, random, sys,os,random
 from pygame.locals import *
+import RPi.GPIO as GPIO
 from gpiozero import Button
+
 
 button_jump = Button(23)
 button_shield = Button(24)
@@ -153,16 +155,16 @@ class David():
         else:
             return 1
         
-''' #This is teacher's reference code
+#This is teacher's reference code
 def RCtime(RCpin): 
     reading = 0
     GPIO.setup(RCpin,GPIO.OUT)
     GPIO.output(RCpin,GPIO.LOW)
-    time.sleep(1/FPS)
+    time.sleep(0.5)
     GPIO.setup(RCpin,GPIO.IN)
     while(GPIO.input(RCpin)==GPIO.LOW):
         reading += 1
-    return reading'''
+    return reading
 
 
 def game_loop():
@@ -305,12 +307,15 @@ def play_again():
         
 def game_play():
     while True:
-        game_initialization()
-        game_loop()
-        if play_again() == 0:
+        rct = RCtime(25)
+        print(rct)
+        if rct < 23000:
+            game_initialization()
+            game_loop()
             pygame.quit()
             sys.exit()
             break
+        
 
 if __name__ == '__main__':
     game_play()
