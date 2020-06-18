@@ -1,17 +1,19 @@
 import  pygame,time, math, random, sys,os,random
 from pygame.locals import *
+import RPi.GPIO as GPIO
 from gpiozero import Button
+
 
 button_jump = Button(23)
 button_shield = Button(24)
 
 def  game_initialization():
-    global Start_dark,Start_light,blank,jump_teach,impossible,shield_teach
+    global Start_dark,blank,jump_teach,shield_teach
     
     global dino1,dino2,background,background1,background2,background3,background4,background5,backgroundx
     global e0,e1,e2,e3,e4,e5,e6,e7,e8,e9,e10
     global sky1,sky2
-    global gameover,shield
+    global gameover,shield,stop,blank,shield_teach,jump_teach
     dino1 = pygame.image.load('Dino1.png')
     dino2 = pygame.image.load('Dino2.png')
     background = pygame.image.load('bg.png')
@@ -37,11 +39,10 @@ def  game_initialization():
     gameover = pygame.image.load('gameover.png')
     shield= pygame.image.load('shield.png')
     Start_dark = pygame.image.load('Start_dark.png')
-    Start_light = pygame.image.load('Start_light.png')
     blank = pygame.image.load('blank.png')
     jump_teach = pygame.image.load('jump_teach.png')
-    impossible = pygame.image.load('impossible.png')
     shield_teach = pygame.image.load('shield_teach.png')
+    stop = pygame.image.load('stop.png')
 
     global jump_music,die_music,shield_music
     pygame.mixer.init()
@@ -160,7 +161,7 @@ class David():
         else:
             return 1
         
-''' #This is teacher's reference code
+ #This is teacher's reference code
 def RCtime(RCpin): 
     reading = 0
     GPIO.setup(RCpin,GPIO.OUT)
@@ -169,7 +170,8 @@ def RCtime(RCpin):
     GPIO.setup(RCpin,GPIO.IN)
     while(GPIO.input(RCpin)==GPIO.LOW):
         reading += 1
-    return reading'''
+    return reading
+
 def game_sleeping():
     global Start_dark
     global FPS, bg_x, sk_x,W,H
@@ -182,7 +184,9 @@ def game_sleeping():
     pygame.display.update()
     
     while True:
-        if True:#光感加在這
+        rct = RCtime(25)
+       
+        if rct < 27000:
             break
             
         
@@ -205,7 +209,7 @@ def blank_no_press():
     global skset,bgset,d,d1,d2,d3,d4,dset,e
     global clock, image, pos_x, pos_y, david, next_bg, next_sk, ground_speed, sky_speed,  flash_freq, z, op, energy,fly, flash_time, is_flash, frame, playing
     global threshold,button_jump,button_shield
-    global score,game_time
+    global score,game_time,stop
     
     pos_x=100
 
@@ -220,8 +224,10 @@ def blank_no_press():
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
                     sys.exit()
-                    
         screen.blit(blank, (0,0))
+        screen.blit(sky1,(sk_x,0))
+        screen.blit(skset[next_sk],(sk_x+4000,0))
+        
         if not fly and not is_flash:
                 # break out the game and ask for playing again or not
                
@@ -236,7 +242,7 @@ def blank_no_press():
         if op==1: op=2 #change Dino picture for every loop 
         else: op=1
         
-        if bg_x <= -2000:
+        if bg_x <= -600:
             
             break
             
@@ -252,7 +258,7 @@ def blank_no_press():
         screen.blit(e[int(energy/100)],(300,300))
         
         
-        
+        clock.tick(FPS)
         pygame.display.update()
 
         
@@ -269,7 +275,7 @@ def game_teach():
     global skset,bgset,d,d1,d2,d3,d4,dset,e
     global clock, image, pos_x, pos_y, david, next_bg, next_sk, ground_speed, sky_speed,  flash_freq, z, op, energy,fly, flash_time, is_flash, frame, playing
     global threshold,button_jump,button_shield
-    global score,game_time
+    global score,game_time,stop,jump_teach,shield_teach
     
     pos_x=100
     while True:
@@ -284,34 +290,46 @@ def game_teach():
                 if event.key == pygame.K_q:
                     sys.exit()
             
-
+        clock.tick(FPS)
+        screen.blit(stop, (bg_x,0))
+        screen.blit(blank, (bg_x+4000,0))
         screen.blit(sky1,(sk_x,0))
         screen.blit(skset[next_sk],(sk_x+4000,0))
-        screen.blit(game_teach, (bg_x,0))
-        screen.blit(blank, (bg_x+4000,0))
         
 
         
         
-        if(pos_x-bgx==1400):#遇見第一棵樹
-            screen.blit(   , (0,0))
+        if(pos_x-bg_x==1400):#遇見第一棵樹
+            screen.blit(jump_teach, (bg_x,0))
+            screen.blit(sky1,(sk_x,0))
+            screen.blit(skset[next_sk],(sk_x+4000,0))
+            david.draw(pos_x,op,0,energy,0,frame,flash_freq)
+            screen.blit(e[int(energy/100)],(300,300))
             pygame.display.update()
             while True:
+                
                 if button_jump.is_pressed==0:
                     jump_music.play()
                     david.isJump = True
+                    break
 
         
-        if(pos_x-bgx==1400) :#遇大樹
-            screen.blit(   , (0,0))
+        if(pos_x-bg_x==3100) :#遇大樹
+            screen.blit( shield_teach, (bg_x,0))
+            screen.blit(sky1,(sk_x,0))
+            screen.blit(skset[next_sk],(sk_x+4000,0))
+            david.draw(pos_x,op,0,energy,0,frame,flash_freq)
+            screen.blit(e[int(energy/100)],(300,300))
             pygame.display.update()
             while True:
                 if fly==0:
-                    if button_shield.is_pressed==0
+                    
+                    if button_shield.is_pressed==0:
                         shield_music.play()
                         fly = 1
                         flash_time = energy
                         ground_speed = ground_speed + 10
+                        break
             
 
         if not fly and not is_flash:
@@ -376,10 +394,11 @@ def blank_yes_press():
     global clock, image, pos_x, pos_y, david, next_bg, next_sk, ground_speed, sky_speed,  flash_freq, z, op, energy,fly, flash_time, is_flash, frame, playing
     global threshold,button_jump,button_shield
     global score,game_time
-    
+    bg_x=0
     while True:
-        score = score + ground_speed
-        game_time = game_time + round(6/FPS,2)
+        
+        
+     
         frame=(frame+1)%flash_freq
         if button_jump.is_pressed==0:#this is jump
             if not david.isJump:
@@ -404,10 +423,12 @@ def blank_yes_press():
 
         clock.tick(FPS)
         pressed_keys = pygame.key.get_pressed()
+        
         screen.blit(background, (bg_x,0))
         screen.blit(bgset[0], (bg_x+4000,0))
         screen.blit(sky1,(sk_x,0))
         screen.blit(skset[next_sk],(sk_x+4000,0))
+        
 
         
         
@@ -460,13 +481,16 @@ def blank_yes_press():
         myFont = pygame.font.SysFont("Times New Roman", 28)
         mytime = myFont.render("Your score is : "+str(score),1,(0,0,0))
         screen.blit(mytime,(20,314))
-        
+        print(bg_x)
         pygame.display.update()
 
 def game_really_start():
+    global background,score,d,dset,next_bg,is_flash,fly,energy
+    
     background = pygame.image.load('bg.png')
     d=dset[0][:]
     next_bg=random.randint(0,len(dset)-1)
+    score=is_flash=fly=energy=0
     
     
     
@@ -612,6 +636,7 @@ def play_again():
 def game_play():
     
     game_initialization()
+    game_sleeping()
     blank_no_press()
     game_teach()
     blank_yes_press()
